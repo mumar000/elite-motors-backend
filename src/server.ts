@@ -20,9 +20,18 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = (process.env.FRONTEND_ORIGINS ||
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://elitemotorcars.com.au",
+  "https://www.elitemotorcars.com.au",
+];
+
+const allowedOrigins = (
+  process.env.FRONTEND_ORIGINS ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "http://localhost:3000,http://localhost:5173")
+  defaultAllowedOrigins.join(",")
+)
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
