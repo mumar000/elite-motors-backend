@@ -5,6 +5,13 @@ import crypto from "crypto";
 
 export const SESSION_COOKIE = "emc_session";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const isProduction = process.env.NODE_ENV === "production";
+const sessionCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" as const : "lax" as const,
+  path: "/",
+};
 
 export async function createSession(userId: string, res: Response): Promise<string> {
   const token = crypto.randomUUID();
@@ -13,11 +20,8 @@ export async function createSession(userId: string, res: Response): Promise<stri
   await Session.create({ userId, token, expiresAt });
 
   res.cookie(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    ...sessionCookieOptions,
     expires: expiresAt,
-    path: "/",
   });
 
   return token;
@@ -50,10 +54,7 @@ export async function clearSession(req: Request, res: Response): Promise<void> {
   }
 
   res.cookie(SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    ...sessionCookieOptions,
     maxAge: 0,
-    path: "/",
   });
 }

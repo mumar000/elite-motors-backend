@@ -27,14 +27,17 @@ const defaultAllowedOrigins = [
   "https://www.elitemotorcars.com.au",
 ];
 
-const allowedOrigins = (
+const configuredAllowedOrigins = (
   process.env.FRONTEND_ORIGINS ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  defaultAllowedOrigins.join(",")
+  ""
 )
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = Array.from(
+  new Set(defaultAllowedOrigins.concat(configuredAllowedOrigins))
+);
 
 app.use(
   cors({
