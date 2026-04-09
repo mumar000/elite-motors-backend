@@ -7,10 +7,15 @@ function getCarQuery(id: string) {
   return mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { slug: id };
 }
 
+function parsePositiveInt(value: unknown, fallback: number) {
+  const parsed = parseInt(String(value ?? ""), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export const getAdminCars = async (req: Request, res: Response) => {
   try {
-    const page = Math.max(1, parseInt((req.query.page as string) ?? "1", 10));
-    const limit = Math.min(50, Math.max(1, parseInt((req.query.limit as string) ?? "20", 10)));
+    const page = parsePositiveInt(req.query.page, 1);
+    const limit = Math.min(50, parsePositiveInt(req.query.limit, 20));
     const q = ((req.query.q as string) ?? "").trim();
     const status = req.query.status as string;
     const featured = req.query.featured as string;
@@ -44,12 +49,12 @@ export const getAdminCars = async (req: Request, res: Response) => {
 
     const [cars, total, totalCars, availableCars, soldCars, featuredCars] = await Promise.all([
       Car.find(filter)
-      .sort({ createdAt: -1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-      .select(
-        "_id slug name status priceAUD isFeatured thumbnailUrl sortOrder specs.year createdAt updatedAt"
-      )
+        .select(
+          "_id slug name status priceAUD isFeatured thumbnailUrl sortOrder specs.year createdAt updatedAt"
+        )
         .lean(),
       Car.countDocuments(filter),
       Car.countDocuments(),
